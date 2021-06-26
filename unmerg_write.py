@@ -49,8 +49,10 @@ def unmerging(d):
     tokens = d[1]
     
     # assert len(spans) == len(tokens)
-    assert len(trigger_labels) == len(tokens)
-    assert len(int_idxs) == len(int_labels), pdb.set_trace()
+    if len(trigger_labels) != len(tokens):
+        raise AssertionError
+    if len(int_idxs) != len(int_labels):
+        raise AssertionError(pdb.set_trace())
     
     arg_combs = []
     for idx in range(len(tokens)):
@@ -64,7 +66,8 @@ def unmerging(d):
             continue
         # else, meaning current tokens have outgoing edges
         trigger_label = trigger_labels[idx]
-        assert trigger_label != 'None'
+        if trigger_label == 'None':
+            raise AssertionError
         
         arg_combs.extend(get_valid_combination(trigger_label, out_ints))
         # pdb.set_trace()
@@ -147,7 +150,8 @@ def heu_for_unmerge(arg_combs, d):
 
         if trigger_label in SIMPLE:
             
-            assert max([len(i) for i in cur_combs]) == 1
+            if max([len(i) for i in cur_combs]) != 1:
+                raise AssertionError
             # do nothing for SIMPLE types, because they all have only one Theme
             # final_combs.extend(cur_combs)
         elif trigger_label in BIND:
@@ -184,10 +188,12 @@ def map_theme_for_bind(cur_comb):
     since all Theme2, Theme3 will share the same Theme key
     '''
     edge_labels = [i[1] for i in cur_comb]
-    assert len(set(edge_labels)) == 1
+    if len(set(edge_labels)) != 1:
+        raise AssertionError
     if len(cur_comb) == 1:
         return cur_comb
-    assert len(cur_comb) > 1 # it must have more than one Theme edge
+    if len(cur_comb) <= 1:
+        raise AssertionError
     out_comb = []
     theme_id = 1
     for edge in cur_comb:
@@ -373,8 +379,10 @@ if __name__ == '__main__':
             
             # from collections import Counter
             # print(Counter(trigger_types))
-            assert len(trigger_types) == len(spans)
-            assert len(spans) == len(tokens)
+            if len(trigger_types) != len(spans):
+                raise AssertionError
+            if len(spans) != len(tokens):
+                raise AssertionError
 
             for idx in range(len(trigger_types)):
                 if trigger_types[idx] in ['Protein', 'Entity', 'None']:
@@ -385,7 +393,8 @@ if __name__ == '__main__':
                     # no valid event for this trigger
                     continue
                 
-                assert spans[idx] not in triggerIdBySpan
+                if spans[idx] in triggerIdBySpan:
+                    raise AssertionError
                 triggerIdBySpan[spans[idx]] = 'T{}'.format(trigger_id)
                 triggerTypeBySpan[spans[idx]] = trigger_types[idx]
                 tokenBySpan[spans[idx]] = tokens[idx]
@@ -407,7 +416,8 @@ if __name__ == '__main__':
                     event['trigger_type'] = trigger_types[idx]
                     
                     for edge in cur_comb:
-                        assert edge[0][0] == idx
+                        if edge[0][0] != idx:
+                            raise AssertionError
                         target_idx = edge[0][1]
                         target_span = spans[target_idx]
                         arg_role = edge[1]
@@ -501,7 +511,8 @@ if __name__ == '__main__':
                             new_event = {}
                             new_event['trigger_type'] = cur_event['trigger_type']
                             new_event['trigger_span'] = cur_event['trigger_span']
-                            assert cause_target_span
+                            if not cause_target_span:
+                                raise AssertionError
                             new_event['Cause'] = new_combs[i][1]
                             new_event['Theme'] = new_combs[i][0]
                             new_event['ST_id'] = 'E{}'.format(event_id)
@@ -569,15 +580,19 @@ if __name__ == '__main__':
         
         for event in all_events:
             if event['trigger_type'] not in REG:
-                assert 'Cause' not in event
+                if 'Cause' in event:
+                    raise AssertionError
                 for k,v in list(event.items()):
                     if k.startswith('Theme'):
-                        assert event[k].startswith('T') or event[k].startswith('E')
+                        if not (event[k].startswith('T') or event[k].startswith('E')):
+                            raise AssertionError
             if (not event['Theme'].startswith('T')) and (not event['Theme'].startswith('E')):
-                assert event['trigger_type'] in REG, pdb.set_trace()
+                if event['trigger_type'] not in REG:
+                    raise AssertionError(pdb.set_trace())
             for k, v in list(event.items()):
                 if k.startswith('Theme') or k == 'Cause':
-                    assert event[k] not in eventIdsBySpan
+                    if event[k] in eventIdsBySpan:
+                        raise AssertionError
                 # pdb.set_trace()
 
         

@@ -176,9 +176,9 @@ def write_pkl(data_out, abs_spans, doc_ids, out_file, gold_tri=True):
     gold_entities = [ np.array([args._id_to_label_t[entity] for entity in entities], dtype=object) for entities in  gold_entities]
     predicted_etities = [np.array([args._id_to_label_t[entity] for entity in entities], dtype=object) for entities in  predicted_etities]
 
-    assert len(predicted_interactions) == len(predicted_interaction_labels) == len(predicted_interactions) == \
-         len(gold_entities)  == len(abs_spans) == len(doc_ids)\
-        , (len(predicted_interactions), len(predicted_interaction_labels), len(predicted_interactions), len(gold_entities), len(abs_spans), len(doc_ids) )
+    if not len(predicted_interactions) == len(predicted_interaction_labels) == len(predicted_interactions) == \
+         len(gold_entities)  == len(abs_spans) == len(doc_ids):
+        raise AssertionError(len(predicted_interactions), len(predicted_interaction_labels), len(predicted_interactions), len(gold_entities), len(abs_spans), len(doc_ids) )
 
     
     outs = []
@@ -188,7 +188,8 @@ def write_pkl(data_out, abs_spans, doc_ids, out_file, gold_tri=True):
             out = tuple([doc_ids[i], input_ids[i], None, gold_entities[i], predicted_interactions[i], predicted_interaction_labels[i], abs_spans[i], None, None])
         else:
             out = tuple([doc_ids[i], input_ids[i], None, predicted_etities[i], predicted_interactions[i], predicted_interaction_labels[i], abs_spans[i], None, None])
-        assert len(abs_spans[i]) == len(gold_entities[i]), (len(abs_spans[i]), len(gold_entities[i]))
+        if len(abs_spans[i]) != len(gold_entities[i]):
+            raise AssertionError(len(abs_spans[i]), len(gold_entities[i]))
         
         outs.append(out)
     

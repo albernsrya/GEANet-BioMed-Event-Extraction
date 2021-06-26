@@ -582,7 +582,8 @@ class MultitaskClassifierBase(nn.Module):
                 else:
                     label_r, rel_idxs, lidx, ridx = self.construct_relations(prob_e, dev_entity_labels, dev_input_masks, None, None, args, gold=gold, test=test)
                 
-                assert len(lidx) == len(ridx)
+                if len(lidx) != len(ridx):
+                    raise AssertionError
 
                 # retrieve the predicted pairs
                 pair_lengths = [len(i) for i in lidx]  # num of pairs in each sent in the batch
@@ -601,7 +602,8 @@ class MultitaskClassifierBase(nn.Module):
                     # (batch, )
                     pred_r = prob_r.data.argmax(dim=1).long().view(-1)
                     if not test:
-                        assert pred_r.size(0) == label_r.size(0)
+                        if pred_r.size(0) != label_r.size(0):
+                            raise AssertionError
 
                     if args.cuda:
                         prob_r = prob_r.cpu()
@@ -626,7 +628,8 @@ class MultitaskClassifierBase(nn.Module):
                     y_preds_r.extend([])
                     predicted_interaction_labels.extend([[] for _ in range(len(dev_input_masks))])
 
-                assert len(predicted_interaction_labels[-1]) ==len(predicted_interactions[-1])
+                if len(predicted_interaction_labels[-1]) != len(predicted_interactions[-1]):
+                    raise AssertionError
                     
                 if not test:
                     y_trues_r.extend(label_r.tolist())
@@ -656,7 +659,8 @@ class MultitaskClassifierBase(nn.Module):
                 
                 
                 
-                assert ent_pred.size() == ent_label.size() 
+                if ent_pred.size() != ent_label.size():
+                    raise AssertionError
 
 
                 y_trues_e.extend(ent_label.tolist())
